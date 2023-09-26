@@ -8,6 +8,7 @@ ax=fig.add_subplot(projection='3d')
 
 # Make data.
 x = np.arange(0, 1, 0.05)
+print(x.shape)
 y = np.arange(0, 1, 0.05)
 x, y = np.meshgrid(x,y)
 
