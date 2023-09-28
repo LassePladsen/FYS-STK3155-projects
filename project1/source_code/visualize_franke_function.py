@@ -6,6 +6,8 @@ import numpy as np
 fig = plt.figure()
 ax=fig.add_subplot(projection='3d')
 
+# Dette er en test
+
 # Make data.
 x = np.arange(0, 1, 0.05)
 print(x.shape)
