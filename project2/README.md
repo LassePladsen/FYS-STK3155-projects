@@ -3,4 +3,5 @@
 Project 2 of the FYS-STK3155 UiO course as found here
 https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/project1.html.
 
-We study gradient descent methods, neural networks, and logistical regression.
+The main aim of this project is to study both classification and regression problems by developing our own feed-forward
+neural network (FFNN) code
