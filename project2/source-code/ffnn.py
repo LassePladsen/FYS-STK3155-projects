@@ -91,7 +91,7 @@ class FFNN:
             None
         """
 
-        # Weights and bias in the hidden layer
+        # Weights and bias in the layers
         self._weights = list()
         self._biases = list()
         for i in range(len(self.dimensions) - 1):
@@ -134,7 +134,8 @@ class FFNN:
 
         Returns
         -------
-            None
+            a_o (np.ndarray) : Final output layer activation with shape (n_samples, n_features=self.dimensions[-1])
+                which contains the probabilities.
         """
 
         # if X is just a vector, make it into a matrix (column vector)
@@ -161,9 +162,8 @@ class FFNN:
             self._z_matrices.append(z)
             self._a_matrices.append(a)
 
-        # print(z_h.shape, a_h.shape, self._weights[0].shape, self._output_weights.shape,
-        #       self._biases[0].shape, self._output_bias.shape)
-
+        # The final activation (output layer) a^L, which contains the probabilities
+        return a
 
     def _backpropagate(
             self,
@@ -192,26 +192,28 @@ class FFNN:
         """
 
         out_derivative = elementwise_grad(self.output_func)
-        hidden_derivative = grad(self.hidden_func)
+        hidden_derivative = elementwise_grad(self.hidden_func)
         cost_func_derivative = grad(self.cost_func(target))
 
-        z_o, probabilities = self._feedforward(X)
-
-        # Output layer error delta^L term
-        if self.output_func.__name__ == "softmax":  # multi-class classification
-            delta_matrix = probabilities - target
-
-        else:  # single class classification
-            cost_func_derivative = grad(self.cost_func(target))
-            delta_matrix = out_derivative(z_o) * cost_func_derivative(probabilities)
+        probabilities = self._feedforward(X)
 
         for i in range(len(self._weights) - 1, -1, -1):
-            # Error delta^1 term for layer i
-            delta_matrix = delta_matrix @ self._weights[i + 1].T * hidden_derivative(self._z_matrices[i + 1])
+            # Output layer error delta^L term
+            if i == len(self._weights) - 1:
+                if self.output_func.__name__ == "softmax":  # multi-class classification
+                    delta_matrix = probabilities - target
+
+                else:  # single class classification
+                    cost_func_derivative = grad(self.cost_func(target))
+                    delta_matrix = out_derivative(self._z_matrices[-1]) * cost_func_derivative(probabilities)
+
+            # Error delta^1 term for hidden layer i
+            else:
+                delta_matrix = delta_matrix @ self._weights[i + 1].T * hidden_derivative(self._z_matrices[i + 1])
 
             # Calculate gradients for layer i
             weights_gradient = self._a_matrices[i].T @ delta_matrix
-            bias_gradient = np.sum(delta_matrix, axis=0).reshape(1, delta_matrix.shape[1])
+            bias_gradient = np.sum(delta_matrix, axis=0)
 
             # Regularization term
             weights_gradient += self._weights[i] * lmbda
@@ -329,8 +331,7 @@ class FFNN:
                 errors[e] = cost_func_target(pred)
 
                 if self.classification:
-                    train_acc = self._accuracy(self.predict(X), target)
-                    accuracies[e] = train_acc
+                    accuracies[e] = accuracy_score(target, pred)
 
                 # printing progress bar
                 if prnt:
@@ -373,7 +374,7 @@ class FFNN:
                 matrix (n_samples)
         """
 
-        probabilities = self._feedforward(X)[-1]
+        probabilities = self._feedforward(X)
         return np.where(probabilities >= 0.5, 1, 0)  # this rounds the probability array to nearest int
 
 
@@ -384,14 +385,14 @@ if __name__ == "__main__":
         [1, 0],
         [1, 1]
     ])
-    yOR = np.asarray([
+    t = np.asarray([
         [0],
         [1],
         [1],
-        [1]
+        [0]
     ])
 
-    nn = FFNN(dimensions=(2, 2, 1))
-    nn.train(X=X, target=yOR)
+    nn = FFNN(dimensions=(2, 2, 1), cost_func=cost_logreg)
+    scores = nn.train(X=X, target=t, epochs=1000)
     pred = nn.predict(X)
     print(pred)
