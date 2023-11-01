@@ -112,8 +112,8 @@ class FFNN:
             self.classification = False
 
     def _feedforward(self, X: np.ndarray) -> None:
-        """Feed forward algorithm, feeds the input through all the hidden layers, stores all the z_h and a_h values,
-        then returns the output probabilities (a_o).
+        """Feed forward algorithm, feeds the input through all the hidden layers, stores all the z^h and a^h layer
+        values, also returns the output probabilities (a^L).
 
         Parameters
         ----------
@@ -121,7 +121,7 @@ class FFNN:
 
         Returns
         -------
-            a_o (np.ndarray) : Final output layer activation with shape (n_samples, n_features=self.dimensions[-1])
+            np.ndarray : Final output layer activation with shape (n_samples, n_features=self.dimensions[-1])
                 which contains the probabilities.
         """
 
