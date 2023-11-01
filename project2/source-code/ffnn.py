@@ -387,7 +387,7 @@ if __name__ == "__main__":
             dimensions=(2, 2, 1),
             cost_func=cost_logreg,
             hidden_func=sigmoid,  # relu is bad for XOR gate with cost_logreg?
-            output_func=identity, ### SOFTMAX OR IDENTITY GIVES BEST RESUTLS FOR XOR GATE WITH cost_logreg, (CONCLUSION: SIGMOID NOT GOOD FOR OUTPUT ACTIVATION?
+            output_func=identity, ### SOFTMAX OR IDENTITY GIVES BEST RESULTS FOR XOR GATE WITH cost_logreg, (CONCLUSION: SIGMOID NOT GOOD FOR OUTPUT ACTIVATION?
     )
     scores = nn.train(X=X, target=t, epochs=1000)
     pred = nn.predict(X)
