@@ -149,6 +149,7 @@ class FFNN:
                 # Store matrices for layer i
                 self._z_matrices.append(z)
                 self._a_matrices.append(a)
+
         except (RuntimeWarning, RuntimeError, OverflowError):
             print(
                     "OverflowError in _feedforward() in FFNN\nHOW TO DEBUG ERROR: Consider lowering your learning rate or scheduler specific parameters such as momentum, or check if your input values need scaling"
@@ -346,27 +347,32 @@ class FFNN:
                     error=errors[e],
                     accuracy=accuracies[e],
             )
-            print("")
+            print()
 
         scores = {"error": errors, "accuracy": accuracies}
         return scores
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        """Performs the prediction after the network has been trained. Rounds all probability values from the
-        feed forward algorithm to nearest integer.
+    def predict(self, X: np.ndarray, threshold: int = 0.5) -> np.ndarray:
+        """Performs the prediction after the network has been trained. If regression this returns the prediction of
+        floats, if classification then it rounds all probability values from the probability prediction with
+        the given threshold.
 
         Parameters
         ----------
             X (np.ndarray) : Input design matrix with shape (n_samples, n_features)
+            threshold (int) : Threshold for classification, only used if self.classification is True
 
         Returns
         -------
-            np.ndarray : Classicification prediction vector (row) of integers for each row in the design
-                matrix (n_samples)
+            np.ndarray : Pprediction vector (row) of for each row in the design matrix (n_samples.
         """
 
         probabilities = self._feedforward(X)
-        return np.where(probabilities >= 0.5, 1, 0)  # this rounds the probability array to nearest int
+
+        if self.classification:
+            return np.where(probabilities >= threshold, 1, 0)
+        else:
+            return probabilities
 
 
 if __name__ == "__main__":
@@ -387,7 +393,8 @@ if __name__ == "__main__":
             dimensions=(2, 2, 1),
             cost_func=cost_logreg,
             hidden_func=sigmoid,  # relu is bad for XOR gate with cost_logreg?
-            output_func=identity, ### SOFTMAX OR IDENTITY GIVES BEST RESULTS FOR XOR GATE WITH cost_logreg, (CONCLUSION: SIGMOID NOT GOOD FOR OUTPUT ACTIVATION?
+            output_func=identity, ### SOFTMAX OR IDENTITY GIVES BEST RESUTLS FOR XOR GATE WITH cost_logreg, (CONCLUSION: SIGMOID NOT GOOD FOR OUTPUT ACTIVATION?
+
     )
     scores = nn.train(X=X, target=t, epochs=1000)
     pred = nn.predict(X)
