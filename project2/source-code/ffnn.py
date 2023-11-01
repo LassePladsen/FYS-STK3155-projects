@@ -9,19 +9,6 @@ from sklearn.metrics import accuracy_score
 from cost import cost_ols, cost_logreg, cost_crossentropy
 from activation import identity, sigmoid, softmax, relu, lrelu, derivate
 
-'''def sigmoid(x):
-    """Sigmoid function for activation."""
-    return 1 / (1 + np.exp(-x))
-
-
-def cost_mse(y_true):
-    """Returns function for the mean squared error cost function."""
-
-    def func(y_pred):
-        return np.mean((y_true - y_pred)**2)
-
-    return func'''
-
 
 class FFNN:
     """Feed forward regression/classification neural network using backpropagation for training.
@@ -150,17 +137,22 @@ class FFNN:
         self._z_matrices.append(X)
         self._a_matrices.append(X)
 
-        # Inputs and activation in the layers
-        for i in range(len(self._weights)):
-            # Weighted sum of input to the hidden layer i
-            z = self._a_matrices[i] @ self._weights[i] + self._biases[i]
+        try:
+            # Inputs and activation in the layers
+            for i in range(len(self._weights)):
+                # Weighted sum of input to the hidden layer i
+                z = self._a_matrices[i] @ self._weights[i] + self._biases[i]
 
-            # Activation of the layer i
-            a = self.hidden_func(z)
+                # Activation of the layer i
+                a = self.hidden_func(z)
 
-            # Store matrices for layer i
-            self._z_matrices.append(z)
-            self._a_matrices.append(a)
+                # Store matrices for layer i
+                self._z_matrices.append(z)
+                self._a_matrices.append(a)
+        except (RuntimeWarning, RuntimeError, OverflowError):
+            print(
+                    "OverflowError in _feedforward() in FFNN\nHOW TO DEBUG ERROR: Consider lowering your learning rate or scheduler specific parameters such as momentum, or check if your input values need scaling"
+            )
 
         # The final activation (output layer) a^L, which contains the probabilities
         return a
@@ -222,7 +214,6 @@ class FFNN:
             # Update weights and biases for layer i
             self._weights[i] -= eta * weights_gradient
             self._biases[i] -= eta * bias_gradient
-
 
     def _format(self, value, decimals=4):
         """Formats decimal numbers for progress bar
@@ -392,7 +383,12 @@ if __name__ == "__main__":
         [0]
     ])
 
-    nn = FFNN(dimensions=(2, 2, 1), cost_func=cost_logreg)
+    nn = FFNN(
+            dimensions=(2, 2, 1),
+            cost_func=cost_logreg,
+            hidden_func=sigmoid,  # relu is bad for XOR gate with cost_logreg?
+            output_func=identity, ### SOFTMAX OR IDENTITY GIVES BEST RESUTLS FOR XOR GATE WITH cost_logreg, (CONCLUSION: SIGMOID NOT GOOD FOR OUTPUT ACTIVATION?
+    )
     scores = nn.train(X=X, target=t, epochs=1000)
     pred = nn.predict(X)
     print(pred)
