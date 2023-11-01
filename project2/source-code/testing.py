@@ -1,23 +1,24 @@
-import numpy as np
-
 from ffnn import FFNN
 from activation import *
 from cost import cost_ols
 
+import numpy as np
+
 # Pparameters
-N = 8  # no. data points
-N_epoch = 1000  # max no. epochs/iterations before stopping
-noise_std = 0.1  # standard deviation of noise
 lmbda = 0.001  # Ridge hyperparameter lambda
-eta = 0.1  # learning rate
-theta_tol = 1e-7  # theta tolerance for stopping iteration when |theta_new - theta_old| <= theta_tol
+eta = 0.01  # learning rate
+degree = 3  # polynomial degree for design matrix
+n_epochs = 1000  # no. epochs/iterations for nn training
+
+n = 8  # no. data points
+noise_std = 0.1  # standard deviation of noise
 rng_seed = 2023  # seed for generating psuedo-random values, helps withbugging purposes
 
 # Create data set
 rng = np.random.default_rng(rng_seed)
-x = rng.random((N, 1)).reshape(-1, 1)
+x = rng.random((n, 1))#.reshape(-1, 1)
 noise = rng.normal(0, noise_std, x.shape)
-y = 5 - 10 * x + 2 * x**2 + noise
+y = 5 - 10 * x + 2 * x**2# + noise
 
 def create_X_1d(x, n):
     """Returns the design matrix X from coordinates x with n polynomial degrees."""
@@ -32,10 +33,10 @@ def create_X_1d(x, n):
 
     return X
 
-X = create_X_1d(x, 2)
+X = create_X_1d(x, degree)
 
 nn = FFNN(
-    dimensions=[X.shape[1], 100, 1],
+    dimensions=[X.shape[1], 50, 1],
     hidden_func=sigmoid,
     output_func=identity,
     cost_func=cost_ols,
@@ -47,7 +48,7 @@ nn.train(
         target=y,
         eta=eta,
         lmbda=lmbda,
-        epochs=1000,
+        epochs=n_epochs,
 )
 
 pred = nn.predict(X)
