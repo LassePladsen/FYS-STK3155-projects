@@ -1,8 +1,8 @@
 import sys
 import autograd.numpy as np
 
-from typing import Callable
-from autograd import grad
+from typing import Callable, Iterable
+from autograd import grad, elementwise_grad
 from numpy.random import default_rng
 from sklearn.metrics import accuracy_score
 
@@ -29,9 +29,9 @@ class FFNN:
     https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/exercisesweek43.html#the-neural-network
     but implemented using our own written code.
 
-    Attributes
+    Parameters
     ----------
-        dimensions (tuple[int]) : A list of positive integers, which specifies the
+        dimensions (Iterable[int]): An iterable of positive integers, which specifies the
             number of nodes in each of the networks layers. The first integer in the array
             defines the number of nodes in the input layer, the second integer defines number
             of nodes in the first hidden layer and so on until the last number, which
@@ -41,11 +41,24 @@ class FFNN:
         cost_func (Callable) : Cost function for the network, it should be a function with parameter y_true (the target)
             and should return a function with parameter y_pred (the prediction).
         seed (int) : Sets seed for random number generator, makes results reproducible
+
+    Attributes
+    ----------
+        dimensions (Iterable[int]): An iterable of positive integers, which specifies the
+            number of nodes in each of the networks layers. The first integer in the array
+            defines the number of nodes in the input layer, the second integer defines number
+            of nodes in the first hidden layer and so on until the last number, which
+            specifies the number of nodes in the output layer.
+        hidden_func (Callable) : The activation function for the hidden layers
+        output_func (Callable) : The activation function for the output layer
+        cost_func (Callable) : Cost function for the network, it should be a function with parameter y_true (the target)
+            and should return a function with parameter y_pred (the prediction).
+        rng (np.random.Generator) : Random number generator for creating random weights and biases
     """
 
     def __init__(
             self,
-            dimensions: tuple[int, ...],
+            dimensions: Iterable[int],
             hidden_func: Callable = sigmoid,
             output_func: Callable = sigmoid,
             cost_func: Callable = cost_ols,
@@ -61,19 +74,17 @@ class FFNN:
         self._set_classification()
 
         # Initialize weights and biases
-        self.output_bias = list()
-        self.output_weights = list()
-        self.hidden_bias = list()
-        self.hidden_weights = list()
+        self._biases = list()
+        self._weights = list()
         self.reset()
 
-    def reset(self) -> None:
-        """Resets hidden layer's and output layer's weights to random values from a normal distribution
-        and biases to 0.01, in order to train the network from scratch.
+    def reset(self, bias_std: float = 0.01) -> None:
+        """Resets hidden layer's and output layer's weights and biases to random values from a normal distribution
+        , in order to train the network from scratch.
 
         Parameters
         ----------
-            None
+            bias_std (float) : Bias standard deviation for the hidden and output layers
 
         Returns
         -------
@@ -81,20 +92,17 @@ class FFNN:
         """
 
         # Weights and bias in the hidden layer
-        self.hidden_weights = list()
-        self.hidden_bias = list()
-        for i in range(1, len(self.dimensions) - 1):
+        self._weights = list()
+        self._biases = list()
+        for i in range(len(self.dimensions) - 1):
             weight_array = self.rng.standard_normal(size=(self.dimensions[i], self.dimensions[i + 1]))
-            bias_array = np.zeros(self.dimensions[i + 1]) + 0.01
-            self.hidden_weights.append(weight_array)
-            self.hidden_bias.append(bias_array)
+            bias_array = self.rng.normal(0, bias_std, size=self.dimensions[i + 1])
+
+            self._weights.append(weight_array)
+            self._biases.append(bias_array)
 
         # Set the classification attribute
         self._set_classification()
-
-        # Weights and bias in the output layer
-        self.output_weights = self.rng.standard_normal((self.dimensions[-2], self.dimensions[-1]))
-        self.output_bias = np.zeros(self.dimensions[-1]) + 0.01
 
     def _set_classification(self):
         """Decides if FFNN acts as classifier (True) og regressor (False), sets self.classification during init()
@@ -116,7 +124,7 @@ class FFNN:
         else:
             self.classification = False
 
-    def _feedforward(self, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def _feedforward(self, X: np.ndarray) -> None:
         """Feed forward algorithm, feeds the input through all the hidden layers, stores all the z_h and a_h values,
         then returns the output probabilities (a_o).
 
@@ -126,43 +134,36 @@ class FFNN:
 
         Returns
         -------
-            z_o (np.ndarray) : Output layer weighted sum of inputs with shape (n_samples, n_outputs=self.dimensions[-1])
-            probabilities (np.ndarray) : Output layer activation; the predicted probabilities with
-                shape (n_samples, n_outputs=self.dimensions[-1])
+            None
         """
 
         # if X is just a vector, make it into a matrix (column vector)
         if len(X.shape) == 1:
             X = X.reshape((1, X.shape[0]))
 
-        # Store z and a matrix values for hidden layers
-        self.z_matrices = list()
-        self.a_matrices = list()
+        # Store z and a matrix values for layers
+        self._z_matrices = list()
+        self._a_matrices = list()
 
         # For the first hidden layer the activation is the design matrix X
-        self.z_matrices.append(X)
-        self.a_matrices.append(X)
+        self._z_matrices.append(X)
+        self._a_matrices.append(X)
 
-        # Inputs and activation in the hidden layers
-        for i in range(len(self.hidden_weights)):
+        # Inputs and activation in the layers
+        for i in range(len(self._weights)):
             # Weighted sum of input to the hidden layer i
-            z_h = self.a_matrices[i] @ self.hidden_weights[i] + self.hidden_bias[i]
+            z = self._a_matrices[i] @ self._weights[i] + self._biases[i]
 
-            # Activation of the hidden layer i
-            a_h = self.hidden_func(z_h)
+            # Activation of the layer i
+            a = self.hidden_func(z)
 
-            # Store matrices for hidden layer i
-            self.z_matrices.append(z_h)
-            self.a_matrices.append(a_h)
+            # Store matrices for layer i
+            self._z_matrices.append(z)
+            self._a_matrices.append(a)
 
-        # Weighted sum of inputs to the output layer
-        print(a_h.shape, self.output_weights.shape, self.output_bias.shape)
-        z_o = a_h @ self.output_weights + self.output_bias
+        # print(z_h.shape, a_h.shape, self._weights[0].shape, self._output_weights.shape,
+        #       self._biases[0].shape, self._output_bias.shape)
 
-        # Activation of output layer; contains the output probabilities
-        probabilities = self.output_func(z_o)  # this is a_o
-
-        return z_o, probabilities
 
     def _backpropagate(
             self,
@@ -190,7 +191,7 @@ class FFNN:
             None
         """
 
-        out_derivative = grad(self.output_func)
+        out_derivative = elementwise_grad(self.output_func)
         hidden_derivative = grad(self.hidden_func)
         cost_func_derivative = grad(self.cost_func(target))
 
@@ -204,25 +205,22 @@ class FFNN:
             cost_func_derivative = grad(self.cost_func(target))
             delta_matrix = out_derivative(z_o) * cost_func_derivative(probabilities)
 
-        # Gradients for the output layer
-        output_weights_gradient = self.a_matrices[-1].T @ delta_matrix
-        output_bias_gradient = np.sum(delta_matrix, axis=0)
+        for i in range(len(self._weights) - 1, -1, -1):
+            # Error delta^1 term for layer i
+            delta_matrix = delta_matrix @ self._weights[i + 1].T * hidden_derivative(self._z_matrices[i + 1])
 
-        for i in range(len(self.hidden_weights) - 1, -1, -1):
-            # Error delta^1 term for hidden layer i
-            delta_matrix = delta_matrix @ self.hidden_weights[i + 1].T * hidden_derivative(self.z_matrices[i + 1])
-
-            # Calculate gradients for hidden layer i
-            hidden_weights_gradient = self.a_matrices[i].T @ delta_matrix
-            hidden_bias_gradient = np.sum(delta_matrix, axis=0).reshape(1, delta_matrix.shape[1])
+            # Calculate gradients for layer i
+            weights_gradient = self._a_matrices[i].T @ delta_matrix
+            bias_gradient = np.sum(delta_matrix, axis=0).reshape(1, delta_matrix.shape[1])
 
             # Regularization term
-            hidden_weights_gradient += self.hidden_weights[i] * lmbda
-            hidden_bias_gradient += self.hidden_bias[i] * lmbda
+            weights_gradient += self._weights[i] * lmbda
+            bias_gradient += self._biases[i] * lmbda
 
-            # Update weights and biases for hidden layer i
-            self.hidden_weights[i] -= eta * hidden_weights_gradient
-            self.hidden_bias[i] -= eta * hidden_bias_gradient
+            # Update weights and biases for layer i
+            self._weights[i] -= eta * weights_gradient
+            self._biases[i] -= eta * bias_gradient
+
 
     def _format(self, value, decimals=4):
         """Formats decimal numbers for progress bar
@@ -250,7 +248,6 @@ class FFNN:
             return str(round(value))
 
         return f"{value:.{decimals - n - 1}f}"
-
 
     def _progress_bar(self, progression, **kwargs) -> int:
         """Displays progress of training
@@ -321,7 +318,7 @@ class FFNN:
         accuracies.fill(np.nan)
 
         if prnt:
-            print(f"{eta=}, lambda={lmbda}")
+            print(f"Eta={eta}, Lambda={lmbda}")
 
         try:
             for e in range(epochs):
@@ -347,6 +344,17 @@ class FFNN:
         except KeyboardInterrupt:
             # allows for stopping training at any point and seeing the result
             pass
+
+        if prnt:
+            # Finish progress bar
+            sys.stdout.write("\r" + " " * print_length)
+            sys.stdout.flush()
+            self._progress_bar(
+                    1,
+                    error=errors[e],
+                    accuracy=accuracies[e],
+            )
+            print("")
 
         scores = {"error": errors, "accuracy": accuracies}
         return scores
@@ -382,7 +390,6 @@ if __name__ == "__main__":
         [1],
         [1]
     ])
-
 
     nn = FFNN(dimensions=(2, 2, 1))
     nn.train(X=X, target=yOR)
