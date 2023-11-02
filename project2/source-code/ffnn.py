@@ -83,7 +83,8 @@ class FFNN:
         self._biases = list()
         for i in range(len(self.dimensions) - 1):
             weight_array = self.rng.standard_normal(size=(self.dimensions[i], self.dimensions[i + 1]))
-            bias_array = self.rng.normal(0, bias_std, size=self.dimensions[i + 1])
+            bias_array = self.rng.standard_normal(size=self.dimensions[i + 1]) * 0.01
+            # bias_array = self.rng.normal(0, bias_std, size=self.dimensions[i + 1])
 
             self._weights.append(weight_array)
             self._biases.append(bias_array)
@@ -232,23 +233,17 @@ class FFNN:
         self._z_matrices.append(X)
         self._a_matrices.append(X)
 
-        try:
-            # Inputs and activation in the layers
-            for i in range(len(self._weights)):
-                # Weighted sum of input to the hidden layer i
-                z = self._a_matrices[i] @ self._weights[i] + self._biases[i]
+        # Inputs and activation in the layers
+        for i in range(len(self._weights)):
+            # Weighted sum of input to the hidden layer i
+            z = self._a_matrices[i] @ self._weights[i] + self._biases[i]
 
-                # Activation of the layer i
-                a = self.hidden_func(z)
+            # Activation of the layer i
+            a = self.hidden_func(z)
 
-                # Store matrices for layer i
-                self._z_matrices.append(z)
-                self._a_matrices.append(a)
-
-        except (RuntimeError, OverflowError):
-            print(
-                    "OverflowError in _feedforward() in FFNN\nHOW TO DEBUG ERROR: Consider lowering your learning rate or scheduler specific parameters such as momentum, or check if your input values need scaling"
-            )
+            # Store matrices for layer i
+            self._z_matrices.append(z)
+            self._a_matrices.append(a)
 
         # The final activation (output layer) a^L, which contains the probabilities
         return a
@@ -279,8 +274,8 @@ class FFNN:
             None
         """
 
-        out_derivative = elementwise_grad(self.output_func)
-        hidden_derivative = elementwise_grad(self.hidden_func)
+        out_derivative = derivate(self.output_func)
+        hidden_derivative = derivate(self.hidden_func)
 
         probabilities = self._feedforward(X)
 

@@ -43,13 +43,13 @@ nn = FFNN(
     seed=rng_seed,
 )
 
-nn.train(
-        X=X,
-        target=y,
-        eta=eta,
-        lmbda=lmbda,
-        epochs=n_epochs,
-)
+# nn.train(
+#         X=X,
+#         target=y,
+#         eta=eta,
+#         lmbda=lmbda,
+#         epochs=n_epochs,
+# )
 
 pred = nn.predict(X)
 print("\nData:")
