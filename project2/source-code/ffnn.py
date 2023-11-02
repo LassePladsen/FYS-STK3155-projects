@@ -88,195 +88,6 @@ class FFNN:
             self._weights.append(weight_array)
             self._biases.append(bias_array)
 
-        # Set the classification attribute
-        self._set_classification()
-
-    def _set_classification(self):
-        """Decides if FFNN acts as classifier (True) og regressor (False), sets self.classification during init()
-
-        Parameters
-        ----------
-            None
-
-        Returns
-        -------
-            None
-        """
-
-        if (
-                self.cost_func.__name__ == "cost_logreg"
-                or self.cost_func.__name__ == "cost_cross_entropy"
-        ):
-            self.classification = True
-        else:
-            self.classification = False
-
-    def _feedforward(self, X: np.ndarray) -> None:
-        """Feed forward algorithm, feeds the input through all the hidden layers, stores all the z^h and a^h layer
-        values, also returns the output probabilities (a^L).
-
-        Parameters
-        ----------
-            X (np.ndarray) : Input design matrix with shape (n_samples, n_features=self.dimensions[0])
-
-        Returns
-        -------
-            np.ndarray : Final output layer activation with shape (n_samples, n_features=self.dimensions[-1])
-                which contains the probabilities.
-        """
-
-        # if X is just a vector, make it into a matrix (column vector)
-        if len(X.shape) == 1:
-            X = X.reshape((1, X.shape[0]))
-
-        # Store z and a matrix values for layers
-        self._z_matrices = list()
-        self._a_matrices = list()
-
-        # For the first hidden layer the activation is the design matrix X
-        self._z_matrices.append(X)
-        self._a_matrices.append(X)
-
-        try:
-            # Inputs and activation in the layers
-            for i in range(len(self._weights)):
-                # Weighted sum of input to the hidden layer i
-                z = self._a_matrices[i] @ self._weights[i] + self._biases[i]
-
-                # Activation of the layer i
-                a = self.hidden_func(z)
-
-                # Store matrices for layer i
-                self._z_matrices.append(z)
-                self._a_matrices.append(a)
-
-        except (RuntimeWarning, RuntimeError, OverflowError):
-            print(
-                    "OverflowError in _feedforward() in FFNN\nHOW TO DEBUG ERROR: Consider lowering your learning rate or scheduler specific parameters such as momentum, or check if your input values need scaling"
-            )
-
-        # The final activation (output layer) a^L, which contains the probabilities
-        return a
-
-    def _backpropagate(
-            self,
-            X: np.ndarray,
-            target: np.ndarray,
-            eta: float = 0.1,
-            lmbda: float = 0.001
-    ) -> None:
-
-        """Performs the backpropagation algorithm. In other words, this method
-            calculates the gradient of all the layers starting at the
-            output layer, and moving from right to left accumulates the gradient until
-            the input layer is reached. Each layers respective weights are updated while
-            the algorithm propagates backwards from the output layer (auto-differentation in reverse mode).
-
-        Parameters
-        ----------
-            X (np.ndarray) : Input design matrix with shape (n_samples, n_features=self.dimensions[0])
-            target (np.ndarray) : Target data column-vector of size (n_samples)
-            eta (float) : Learning rate for the network
-            lmbda (float) : Regularization hyperparameter lambda
-
-        Returns
-        -------
-            None
-        """
-
-        out_derivative = elementwise_grad(self.output_func)
-        hidden_derivative = elementwise_grad(self.hidden_func)
-        cost_func_derivative = grad(self.cost_func(target))
-
-        probabilities = self._feedforward(X)
-
-        for i in range(len(self._weights) - 1, -1, -1):
-            # Output layer error delta^L term
-            if i == len(self._weights) - 1:
-                if self.output_func.__name__ == "softmax":  # multi-class classification
-                    delta_matrix = probabilities - target
-
-                else:  # single class classification
-                    cost_func_derivative = grad(self.cost_func(target))
-                    delta_matrix = out_derivative(self._z_matrices[-1]) * cost_func_derivative(probabilities)
-
-            # Error delta^1 term for hidden layer i
-            else:
-                delta_matrix = delta_matrix @ self._weights[i + 1].T * hidden_derivative(self._z_matrices[i + 1])
-
-            # Calculate gradients for layer i
-            weights_gradient = self._a_matrices[i].T @ delta_matrix
-            bias_gradient = np.sum(delta_matrix, axis=0)
-
-            # Regularization term
-            weights_gradient += self._weights[i] * lmbda
-            bias_gradient += self._biases[i] * lmbda
-
-            # Update weights and biases for layer i
-            self._weights[i] -= eta * weights_gradient
-            self._biases[i] -= eta * bias_gradient
-
-    def _format(self, value, decimals=4):
-        """Formats decimal numbers for progress bar
-
-        Parameters
-        ----------
-            value (float) : Value to be formatted
-            decimals (int) : Number of decimals to be printed
-
-        Returns
-        -------
-            str : Formatted string
-        """
-
-        if value > 0:
-            v = value
-        elif value < 0:
-            v = -10 * value
-        else:
-            v = 1
-
-        n = 1 + int(np.floor(np.log10(v)))
-
-        if n >= decimals - 1:
-            return str(round(value))
-
-        return f"{value:.{decimals - n - 1}f}"
-
-    def _progress_bar(self, progression, **kwargs) -> int:
-        """Displays progress of training
-
-        Parameters
-        ----------
-            progression (float) : Progression of training, should be between 0 and 1
-            **kwargs : Metrics to be printed
-
-        Returns
-        -------
-            int : Length of the printed line
-        """
-
-        print_length = 40
-
-        num_equals = int(progression * print_length)
-        num_not = print_length - num_equals
-
-        arrow = ">" if num_equals > 0 else ""
-        bar = "[" + "=" * (num_equals - 1) + arrow + "-" * num_not + "]"
-        perc_print = self._format(progression * 100, decimals=5)
-        line = f"  {bar} {perc_print}% "
-
-        # Metrics
-        for key in kwargs:
-            if not np.isnan(kwargs[key]):
-                value = self._format(kwargs[key], decimals=4)
-                line += f"| {key}: {value} "
-
-        sys.stdout.write("\r" + line)
-        sys.stdout.flush()
-
-        return len(line)
-
     def train(
             self,
             X: np.ndarray,
@@ -373,6 +184,196 @@ class FFNN:
             return np.where(probabilities >= threshold, 1, 0)
         else:
             return probabilities
+
+
+    def _set_classification(self):
+        """Decides if FFNN acts as classifier (True) og regressor (False), sets self.classification during init()
+
+        Parameters
+        ----------
+            None
+
+        Returns
+        -------
+            None
+        """
+
+        if (
+                self.cost_func.__name__ == """cost_logreg"""
+                or self.cost_func.__name__ == "cost_cross_entropy"
+        ):
+            self.classification = True
+        else:
+            self.classification = False
+
+    def _feedforward(self, X: np.ndarray) -> None:
+        """Feed forward algorithm, feeds the input through all the hidden layers, stores all the z^h and a^h layer
+        values, also returns the output probabilities (a^L).
+
+        Parameters
+        ----------
+            X (np.ndarray) : Input design matrix with shape (n_samples, n_features=self.dimensions[0])
+
+        Returns
+        -------
+            np.ndarray : Final output layer activation with shape (n_samples, n_features=self.dimensions[-1])
+                which contains the probabilities.
+        """
+
+        # if X is just a vector, make it into a matrix (column vector)
+        if len(X.shape) == 1:
+            X = X.reshape((1, X.shape[0]))
+
+        # Store z and a matrix values for layers
+        self._z_matrices = list()
+        self._a_matrices = list()
+
+        # For the first hidden layer the activation is the design matrix X
+        self._z_matrices.append(X)
+        self._a_matrices.append(X)
+
+        try:
+            # Inputs and activation in the layers
+            for i in range(len(self._weights)):
+                # Weighted sum of input to the hidden layer i
+                z = self._a_matrices[i] @ self._weights[i] + self._biases[i]
+
+                # Activation of the layer i
+                a = self.hidden_func(z)
+
+                # Store matrices for layer i
+                self._z_matrices.append(z)
+                self._a_matrices.append(a)
+
+        except (RuntimeError, OverflowError):
+            print(
+                    "OverflowError in _feedforward() in FFNN\nHOW TO DEBUG ERROR: Consider lowering your learning rate or scheduler specific parameters such as momentum, or check if your input values need scaling"
+            )
+
+        # The final activation (output layer) a^L, which contains the probabilities
+        return a
+
+    def _backpropagate(
+            self,
+            X: np.ndarray,
+            target: np.ndarray,
+            eta: float = 0.1,
+            lmbda: float = 0.001
+    ) -> None:
+
+        """Performs the backpropagation algorithm. In other words, this method
+            calculates the gradient of all the layers starting at the
+            output layer, and moving from right to left accumulates the gradient until
+            the input layer is reached. Each layers respective weights are updated while
+            the algorithm propagates backwards from the output layer (auto-differentation in reverse mode).
+
+        Parameters
+        ----------
+            X (np.ndarray) : Input design matrix with shape (n_samples, n_features=self.dimensions[0])
+            target (np.ndarray) : Target data column-vector of size (n_samples)
+            eta (float) : Learning rate for the network
+            lmbda (float) : Regularization hyperparameter lambda
+
+        Returns
+        -------
+            None
+        """
+
+        out_derivative = elementwise_grad(self.output_func)
+        hidden_derivative = elementwise_grad(self.hidden_func)
+
+        probabilities = self._feedforward(X)
+
+        for i in range(len(self._weights) - 1, -1, -1):
+
+            # Output layer error delta^L term
+            if i == len(self._weights) - 1:
+
+                # multi-class classification
+                if self.output_func.__name__ == "softmax":
+                    delta_matrix = probabilities - target
+
+                # single class classification
+                else:
+                    cost_func_derivative = grad(self.cost_func(target))
+                    delta_matrix = out_derivative(self._z_matrices[-1]) * cost_func_derivative(probabilities)
+
+            # Error delta^1 term for hidden layer i
+            else:
+                delta_matrix = delta_matrix @ self._weights[i + 1].T * hidden_derivative(self._z_matrices[i + 1])
+
+            # Calculate gradients for layer i
+            weights_gradient = self._a_matrices[i].T @ delta_matrix
+            bias_gradient = np.sum(delta_matrix, axis=0)
+
+            # Regularization term
+            weights_gradient += self._weights[i] * lmbda
+            bias_gradient += self._biases[i] * lmbda
+
+            # Update weights and biases for layer i
+            self._weights[i] -= eta * weights_gradient
+            self._biases[i] -= eta * bias_gradient
+
+    def _format(self, value, decimals=4):
+        """Formats decimal numbers for progress bar
+
+        Parameters
+        ----------
+            value (float) : Value to be formatted
+            decimals (int) : Number of decimals to be printed
+
+        Returns
+        -------
+            str : Formatted string
+        """
+
+        if value > 0:
+            v = value
+        elif value < 0:
+            v = -10 * value
+        else:
+            v = 1
+
+        n = 1 + int(np.floor(np.log10(v)))
+
+        if n >= decimals - 1:
+            return str(round(value))
+
+        return f"{value:.{decimals - n - 1}f}"
+
+    def _progress_bar(self, progression, **kwargs) -> int:
+        """Displays progress of training
+
+        Parameters
+        ----------
+            progression (float) : Progression of training, should be between 0 and 1
+            **kwargs : Metrics to be printed
+
+        Returns
+        -------
+            int : Length of the printed line
+        """
+
+        print_length = 40
+
+        num_equals = int(progression * print_length)
+        num_not = print_length - num_equals
+
+        arrow = ">" if num_equals > 0 else ""
+        bar = "[" + "=" * (num_equals - 1) + arrow + "-" * num_not + "]"
+        perc_print = self._format(progression * 100, decimals=5)
+        line = f"  {bar} {perc_print}% " 
+
+        # Metrics
+        for key in kwargs:
+            if not np.isnan(kwargs[key]):
+                value = self._format(kwargs[key], decimals=4)
+                line += f"| {key}: {value} "
+
+        sys.stdout.write("\r" + line)
+        sys.stdout.flush()
+
+        return len(line)
 
 
 if __name__ == "__main__":
