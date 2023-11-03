@@ -371,7 +371,7 @@ class FFNN:
         return len(line)
 
 
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     X = np.asarray([
         [0, 0],
         [0, 1],
@@ -394,4 +394,4 @@ if __name__ == "__main__":
     )
     scores = nn.train(X=X, target=t, epochs=1000)
     pred = nn.predict(X)
-    print(pred)
+    print(pred)"""

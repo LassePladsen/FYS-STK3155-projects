@@ -5,13 +5,13 @@ from part_b_cost import cost_ols
 import numpy as np
 
 # Parameters
-lmbda = 0.001  # Ridge hyperparameter lambda
+n = 50  # no. data points
+noise_std = 1  # standard deviation of noise
+
+lmbda = 0.001  # shrinkage hyperparameter lambda
 eta = 0.01  # learning rate
 degree = 3  # polynomial degree for design matrix
 n_epochs = 1000  # no. epochs/iterations for nn training
-
-n = 50  # no. data points
-noise_std = 1  # standard deviation of noise
 rng_seed = 2023  # seed for generating psuedo-random values, helps withbugging purposes
 
 # Create data set
