@@ -236,9 +236,11 @@ def anal_SGDM(beta, method, Type):
     error = []
     update = 0
     iter = 0.0
-    first_moment = 0.0
-    second_moment = 0.0
+    """first_moment = 0.0
+    second_moment = 0.0"""
     for epoch in range(n_epochs):
+        first_moment = 0.0
+        second_moment = 0.0
         Giter = 0.0
         for i in range(m):
             iter += 1
@@ -634,9 +636,11 @@ def autograd_SGD(beta, method, Type):
     itera = []
     error = []
     iter = 0.0
-    first_moment = 0.0
-    second_moment = 0.0
+    """first_moment = 0.0
+    second_moment = 0.0"""
     for epoch in range(n_epochs):
+        first_moment = 0.0
+        second_moment = 0.0
         Giter = 0.0
         for i in range(m):
             itera.append(k)
@@ -700,9 +704,11 @@ def autograd_SGDM(beta, method, Type):
     error = []
     update = 0
     iter = 0.0
-    first_moment = 0.0
-    second_moment = 0.0
+    """first_moment = 0.0
+    second_moment = 0.0"""
     for epoch in range(n_epochs):
+        first_moment = 0.0
+        second_moment = 0.0
         Giter = 0.0
         for i in range(m):
             iter += 1
