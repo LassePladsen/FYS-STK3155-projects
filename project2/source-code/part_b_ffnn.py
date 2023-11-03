@@ -6,8 +6,8 @@ from autograd import grad, elementwise_grad
 from numpy.random import default_rng
 from sklearn.metrics import accuracy_score
 
-from cost import cost_ols, cost_logreg, cost_crossentropy
-from activation import identity, sigmoid, softmax, relu, lrelu, derivate
+from part_b_cost import cost_ols, cost_logreg, cost_crossentropy
+from part_b_activation import identity, sigmoid, softmax, relu, lrelu, derivate
 
 
 class FFNN:
