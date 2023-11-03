@@ -1,24 +1,24 @@
-from ffnn import FFNN
-from activation import *
-from cost import cost_ols
+from part_b_ffnn import FFNN
+from part_b_activation import *
+from part_b_cost import cost_ols
 
 import numpy as np
 
-# Pparameters
+# Parameters
 lmbda = 0.001  # Ridge hyperparameter lambda
 eta = 0.01  # learning rate
 degree = 3  # polynomial degree for design matrix
 n_epochs = 1000  # no. epochs/iterations for nn training
 
-n = 8  # no. data points
-noise_std = 0.1  # standard deviation of noise
+n = 50  # no. data points
+noise_std = 1  # standard deviation of noise
 rng_seed = 2023  # seed for generating psuedo-random values, helps withbugging purposes
 
 # Create data set
 rng = np.random.default_rng(rng_seed)
-x = rng.random((n, 1))#.reshape(-1, 1)
+x = 4 * rng.random((n, 1))#.reshape(-1, 1)
 noise = rng.normal(0, noise_std, x.shape)
-y = 5 - 10 * x + 2 * x**2# + noise
+y = 2 + 3*x + 4*x**2# + noise
 
 def create_X_1d(x, n):
     """Returns the design matrix X from coordinates x with n polynomial degrees."""
