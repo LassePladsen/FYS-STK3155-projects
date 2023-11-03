@@ -6,7 +6,8 @@ import seaborn as sns
 
 n = 100
 x = 2 * np.random.rand(n, 1)
-y = 2 + 3*x + 4*x**2 + np.random.randn(n, 1)
+noise = np.random.normal(0, 0.1, size=x.shape)
+y = 2 + 3*x + 4*x**2 + noise
 
 X = np.c_[np.ones((n, 1)), x]
 XT_X = X.T @ X
