@@ -28,19 +28,6 @@ class FFNN:
         cost_func (Callable) : Cost function for the network, it should be a function with parameter y_true (the target)
             and should return a function with parameter y_pred (the prediction).
         seed (int) : Sets seed for random number generator, makes results reproducible
-
-    Attributes
-    ----------
-        dimensions (Iterable[int]): An iterable of positive integers, which specifies the
-            number of nodes in each of the networks layers. The first integer in the array
-            defines the number of nodes in the input layer, the second integer defines number
-            of nodes in the first hidden layer and so on until the last number, which
-            specifies the number of nodes in the output layer.
-        hidden_func (Callable) : The activation function for the hidden layers
-        output_func (Callable) : The activation function for the output layer
-        cost_func (Callable) : Cost function for the network, it should be a function with parameter y_true (the target)
-            and should return a function with parameter y_pred (the prediction).
-        rng (np.random.Generator) : Random number generator for creating random weights and biases
     """
 
     def __init__(
