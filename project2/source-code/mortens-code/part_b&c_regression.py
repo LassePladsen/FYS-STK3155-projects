@@ -204,7 +204,7 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
 
 # plot_pred("../../results/figures/part_b_pred.png")
 # plot_pred_scikit("../../results/figures/part_b_pred_scikit.png")
-plot_mse_r2_grid(
-        "../../results/figures/part_b_mse_grid.png",
-        "../../results/figures/part_b_r2_grid.png"
-)
+# plot_mse_r2_grid(
+#         "../../results/figures/part_b_mse_grid.png",
+#         "../../results/figures/part_b_r2_grid.png"
+# )
