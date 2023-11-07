@@ -93,7 +93,8 @@ def plot_pred(filename: str = ""):
     if filename:
         plt.savefig(filename)
 
-    plt.show()
+    else:
+        plt.show()
 
 def plot_mse_grid(filename: str = ""):
     # PLOT MSE AS FUNC OF LAMBDA AND ETA
@@ -175,4 +176,6 @@ def plot_r2_grid(filename: str = ""):
         plt.show()
 
 
-plot_r2_grid()
+plot_pred("../../results/figures/part_b_pred.png")
+# plot_r2_grid("../../results/figures/part_b_r2_grid.png")
+# plot_mse_grid("../../results/figures/part_b_mse_grid.png")
