@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor  # neural network from sckikit-learn for comparision
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_squared_error
 
 # Parameters
 n = 100  # no. data points
@@ -50,6 +50,8 @@ def create_X_1d(x, n):
 x_test, x_train, y_test, y_train = train_test_split(x, y, test_size=0.2,
                                                     random_state=rng_seed)
 
+test_cost = cost_ols(y_test.ravel())                                                   
+
 X_train = create_X_1d(x_train, degree)
 X_test = create_X_1d(x_test, degree)
 
@@ -86,7 +88,7 @@ def plot_pred(filename: str = ""):
     pred = nn.predict(X_test)
 
     # PLOT DATA AND PREDICTION
-    test_mse = cost_ols(y_test)(pred)
+    test_mse = test_cost(pred.ravel())
     test_r2 = r2_score(y_test, pred)
     sort_order = np.argsort(x_test.ravel())
     x_sort = x_test.ravel()[sort_order]
@@ -95,7 +97,7 @@ def plot_pred(filename: str = ""):
     plt.scatter(x_sort, y_test.ravel()[sort_order], 5, label="Test data")
     plt.plot(x_sort, pred.ravel()[sort_order], "r-", label="Prediction fit")
     plt.title(f"$p={degree}$ | $\eta={eta}$ | $\lambda={lmbda}$ | {n_epochs=} "
-              f"\n{n_batches=} | mse={test_mse:.1f} | r2={test_r2:.2f}")
+              f"\n{n_batches=} | mse={test_mse:.1f} | $R^2$={test_r2:.2f}")
     plt.legend()
 
     if filename:
@@ -116,7 +118,7 @@ def plot_pred_scikit(filename: str = ""):
     pred = nn_sk.predict(X_test)
 
     # PLOT DATA AND PREDICTION
-    test_mse = cost_ols(y_test)(pred)
+    test_mse = test_cost(pred.ravel())
     test_r2 = r2_score(y_test, pred)
     sort_order = np.argsort(x_test.ravel())
     x_sort = x_test.ravel()[sort_order]
@@ -125,7 +127,7 @@ def plot_pred_scikit(filename: str = ""):
     plt.scatter(x_sort, y_test.ravel()[sort_order], 5, label="Test data")
     plt.plot(x_sort, pred.ravel()[sort_order], "r-", label="Prediction fit")
     plt.title(f"$p={degree}$ | $\eta={eta}$ | $\lambda={lmbda}$ | {n_epochs=} "
-              f"\n{n_batches=} | mse={test_mse:.1f} | r2={test_r2:.2f}")
+              f"\n{n_batches=} | mse={test_mse:.1f} | $R^2$={test_r2:.2f}")
     plt.legend()
 
     if filename:
@@ -154,7 +156,7 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
                     batches=n_batches,
             )
             pred = nn.predict(X_test)
-            mse_scores[i, j] = cost_ols(y_test)(pred)
+            mse_scores[i, j] = test_cost(pred.ravel())
             r2_scores[i, j] = r2_score(y_test, pred)
 
     # MSE heatmap
@@ -201,8 +203,8 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
 
 
 # plot_pred("../../results/figures/part_b_pred.png")
-plot_pred_scikit("../../results/figures/part_b_pred_scikit.png")
-# plot_mse_r2_grid(
-#         "../../results/figures/part_b_mse_grid.png",
-#         "../../results/figures/part_b_r2_grid.png"
-# )
+# plot_pred_scikit("../../results/figures/part_b_pred_scikit.png")
+plot_mse_r2_grid(
+        "../../results/figures/part_b_mse_grid.png",
+        "../../results/figures/part_b_r2_grid.png"
+)
