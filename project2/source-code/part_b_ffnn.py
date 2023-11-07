@@ -25,29 +25,17 @@ class FFNN:
             specifies the number of nodes in the output layer.
         hidden_func (Callable) : The activation function for the hidden layers
         output_func (Callable) : The activation function for the output layer
-        cost_func (Callable) : Cost function for the network, it should be a function with parameter y_true (the target)
-            and should return a function with parameter y_pred (the prediction).
+        cost_func (Callable) : Cost function for the network, it should be a
+            function with parameter y_true (the target) and should return
+            a function with parameter y_pred (the prediction).
         seed (int) : Sets seed for random number generator, makes results reproducible
-
-    Attributes
-    ----------
-        dimensions (Iterable[int]): An iterable of positive integers, which specifies the
-            number of nodes in each of the networks layers. The first integer in the array
-            defines the number of nodes in the input layer, the second integer defines number
-            of nodes in the first hidden layer and so on until the last number, which
-            specifies the number of nodes in the output layer.
-        hidden_func (Callable) : The activation function for the hidden layers
-        output_func (Callable) : The activation function for the output layer
-        cost_func (Callable) : Cost function for the network, it should be a function with parameter y_true (the target)
-            and should return a function with parameter y_pred (the prediction).
-        rng (np.random.Generator) : Random number generator for creating random weights and biases
     """
 
     def __init__(
             self,
             dimensions: Iterable[int],
             hidden_func: Callable = sigmoid,
-            output_func: Callable = sigmoid,
+            output_func: Callable = identity,
             cost_func: Callable = cost_ols,
             seed: int = None
     ):
@@ -57,17 +45,17 @@ class FFNN:
         self.cost_func = cost_func
         self.rng = default_rng(seed)
 
-        # Set as classification or not (regression)
-        self._set_classification()
-
         # Initialize weights and biases
         self._biases = list()
         self._weights = list()
         self.reset()
 
-    def reset(self, bias_std: float = 0.01) -> None:
-        """Resets hidden layer's and output layer's weights and biases to random values from a normal distribution
-        , in order to train the network from scratch.
+        # Set as classification or not (regression)
+        self._set_classification()
+
+    def reset(self) -> None:
+        """Resets hidden layer's and output layer's weights and biases to
+        random values from a normal distribution, in order to train the network from scratch.
 
         Parameters
         ----------
@@ -84,7 +72,6 @@ class FFNN:
         for i in range(len(self.dimensions) - 1):
             weight_array = self.rng.standard_normal(size=(self.dimensions[i], self.dimensions[i + 1]))
             bias_array = self.rng.standard_normal(size=self.dimensions[i + 1]) * 0.01
-            # bias_array = self.rng.normal(0, bias_std, size=self.dimensions[i + 1])
 
             self._weights.append(weight_array)
             self._biases.append(bias_array)
@@ -98,7 +85,8 @@ class FFNN:
             epochs: int = 1000,
             prnt: bool = True
     ) -> dict[str, np.ndarray]:
-        """Trains/fits the neural network using back propagation a given amount of epoch iterations.
+        """Trains/fits the neural network using back propagation a given amount of epoch iterations
+        with a fixed learning rate.
 
          Parameters
          ----------
@@ -186,9 +174,8 @@ class FFNN:
         else:
             return probabilities
 
-
     def _set_classification(self):
-        """Decides if FFNN acts as classifier (True) og regressor (False), sets self.classification during init()
+        """Decides if FFNN acts as classifier (True) og regressor (False), sets self.classification.
 
         Parameters
         ----------
@@ -207,7 +194,7 @@ class FFNN:
         else:
             self.classification = False
 
-    def _feedforward(self, X: np.ndarray) -> None:
+    def _feedforward(self, X: np.ndarray) -> np.ndarray:
         """Feed forward algorithm, feeds the input through all the hidden layers, stores all the z^h and a^h layer
         values, also returns the output probabilities (a^L).
 
@@ -342,7 +329,7 @@ class FFNN:
         Parameters
         ----------
             progression (float) : Progression of training, should be between 0 and 1
-            **kwargs : Metrics to be printed
+            **kwargs : Metrics to be printed beside progress bar
 
         Returns
         -------
@@ -357,7 +344,7 @@ class FFNN:
         arrow = ">" if num_equals > 0 else ""
         bar = "[" + "=" * (num_equals - 1) + arrow + "-" * num_not + "]"
         perc_print = self._format(progression * 100, decimals=5)
-        line = f"  {bar} {perc_print}% " 
+        line = f"  {bar} {perc_print}% "
 
         # Metrics
         for key in kwargs:
