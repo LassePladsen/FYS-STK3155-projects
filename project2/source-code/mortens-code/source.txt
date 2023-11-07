@@ -1,0 +1,4 @@
+FYS-STK3155/4155 UiO course
+lecture notes exercises week 43: Building a neural nework code
+
+https://compphysics.github.io/MachineLearning/doc/LectureNotes/_build/html/exercisesweek43.html#the-neural-network
