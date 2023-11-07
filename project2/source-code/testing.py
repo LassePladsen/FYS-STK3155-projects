@@ -5,18 +5,19 @@ from part_b_cost import cost_ols
 import numpy as np
 
 # Parameters
-n = 50  # no. data points
+n = 100  # no. data points
 noise_std = 1  # standard deviation of noise
+xmax = 5  # max x value
 
-lmbda = 0.001  # shrinkage hyperparameter lambda
+lmbda = 0.0001  # shrinkage  hyperparameter lambda
 eta = 0.01  # learning rate
-degree = 3  # polynomial degree for design matrix
+degree = 1  # max polynomial degree for design matrix
 n_epochs = 1000  # no. epochs/iterations for nn training
 rng_seed = 2023  # seed for generating psuedo-random values, helps withbugging purposes
 
 # Create data set
 rng = np.random.default_rng(rng_seed)
-x = 4 * rng.random((n, 1))#.reshape(-1, 1)
+x = rng.uniform(-xmax, xmax, size=(n, 1))#.reshape(-1, 1)
 noise = rng.normal(0, noise_std, x.shape)
 y = 2 + 3*x + 4*x**2# + noise
 
@@ -56,4 +57,7 @@ print("\nData:")
 print(y.ravel())
 print("\nPredictions:")
 print(pred.ravel())
+
+print(nn._z_matrices[1])
+print(sigmoid(nn._z_matrices[1]))
 

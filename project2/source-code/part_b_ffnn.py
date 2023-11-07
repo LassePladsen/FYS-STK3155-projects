@@ -70,8 +70,12 @@ class FFNN:
         self._weights = list()
         self._biases = list()
         for i in range(len(self.dimensions) - 1):
-            weight_array = self.rng.standard_normal(size=(self.dimensions[i], self.dimensions[i + 1]))
-            bias_array = self.rng.standard_normal(size=self.dimensions[i + 1]) * 0.01
+            # weight_array = self.rng.standard_normal(size=(self.dimensions[i], self.dimensions[i + 1]))
+            # bias_array = self.rng.standard_normal(size=self.dimensions[i + 1]) * 0.01
+            weight_array = np.random.randn(
+                    self.dimensions[i], self.dimensions[i + 1]
+            )
+            bias_array = np.random.randn(self.dimensions[i + 1]) * 0.01
 
             self._weights.append(weight_array)
             self._biases.append(bias_array)
@@ -125,7 +129,7 @@ class FFNN:
                 if self.classification:
                     accuracies[e] = accuracy_score(target, pred)
 
-                # printing progress bar
+                # Print progress bar
                 if prnt:
                     progression = e / epochs
                     print_length = self._progress_bar(
