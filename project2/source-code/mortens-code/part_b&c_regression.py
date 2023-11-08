@@ -14,7 +14,6 @@ from sklearn.metrics import r2_score, mean_squared_error
 n = 100  # no. data points
 noise_std = 1  # standard deviation of noise
 xmax = 5  # max x value
-
 lmbda = 0.0001  # shrinkage  hyperparameter lambda
 eta = 0.001  # learning rate
 n_batches = 3  # no. minibatches for sgd
@@ -99,6 +98,7 @@ def plot_pred(filename: str = ""):
     plt.title(f"$p={degree}$ | $\eta={eta}$ | $\lambda={lmbda}$ | {n_epochs=} "
               f"\n{n_batches=} | mse={test_mse:.1f} | $R^2$={test_r2:.2f}")
     plt.legend()
+    plt.grid(True)
 
     if filename:
         plt.savefig(filename)
@@ -129,6 +129,7 @@ def plot_pred_scikit(filename: str = ""):
     plt.title(f"$p={degree}$ | $\eta={eta}$ | $\lambda={lmbda}$ | {n_epochs=} "
               f"\n{n_batches=} | mse={test_mse:.1f} | $R^2$={test_r2:.2f}")
     plt.legend()
+    plt.grid(True)
 
     if filename:
         plt.savefig(filename)
@@ -202,8 +203,8 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
         plt.show()
 
 
-# plot_pred("../../results/figures/part_b_pred.png")
-# plot_pred_scikit("../../results/figures/part_b_pred_scikit.png")
+plot_pred("../../results/figures/part_b_pred.png")
+plot_pred_scikit("../../results/figures/part_b_pred_scikit.png")
 # plot_mse_r2_grid(
 #         "../../results/figures/part_b_mse_grid.png",
 #         "../../results/figures/part_b_r2_grid.png"
