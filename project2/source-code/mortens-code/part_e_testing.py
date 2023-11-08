@@ -6,9 +6,10 @@ from scheduler import *
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor  # neural network from sckikit-learn for comparision
-from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.metrics import accuracy_score
 
 # Parameters
 n = 100  # no. data points
@@ -25,40 +26,22 @@ rng_seed = 2023  # seed for generating psuedo-random values, helps withbugging p
 eta_vals = np.logspace(-5, -1, 5)  # learning rates
 lmbd_vals = np.logspace(-5, 0, 6)  # regularization rates
 
-# Create data set
-rng = np.random.default_rng(rng_seed)
-x = rng.uniform(-xmax, xmax, size=(n, 1)) 
-noise = rng.normal(0, noise_std, x.shape)
-y = 2 + 3 * x + 4 * x**2 + noise
+# Set up design matrix and target vector
+data = load_breast_cancer()
+X = data.data
+target = data.target
 
-
-def create_X_1d(x, n):
-    """Returns the design matrix X from coordinates x with n polynomial degrees."""
-    if len(x.shape) > 1:
-        x = np.ravel(x)
-
-    N = len(x)
-    X = np.ones((N, n + 1))
-
-    for p in range(1, n + 1):
-        X[:, p] = x**p
-
-    return X
-
-
-x_test, x_train, y_test, y_train = train_test_split(x, y, test_size=0.2,
-                                                    random_state=rng_seed)
+# Split data into training and testing set
+X_train, X_test, y_train, y_test  = train_test_split(X, target, test_size=0.2,
+                                                        random_state=rng_seed)
 
 test_cost = cost_ols(y_test.ravel())                                                   
 
-X_train = create_X_1d(x_train, degree)
-X_test = create_X_1d(x_test, degree)
-
 nn = FFNN(
-        dimensions=[X_train.shape[1], 50, 1],
+        dimensions=[X_train.shape[1], 1],
         hidden_func=sigmoid,
-        output_func=identity,
-        cost_func=cost_ols,
+        output_func=sigmoid,
+        cost_func=cost_logreg,
         seed=rng_seed,
 )
 
@@ -67,9 +50,9 @@ nn.fit(
         t=y_train,
         lam=lmbda,
         epochs=n_epochs,
-        scheduler=Adam(eta=eta, rho=0.9, rho2=0.999),
-        # scheduler=Constant(eta=eta),
-        batches=n_batches,
+        # scheduler=Adam(eta=eta, rho=0.9, rho2=0.999),
+        scheduler=Constant(eta=eta),
+        batches=1,
 )
 
 
@@ -203,8 +186,9 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
         plt.show()
 
 
-plot_pred("../../results/figures/part_b_pred.png")
-plot_pred_scikit("../../results/figures/part_b_pred_scikit.png")
+print_pred()
+# plot_pred("../../results/figures/part_b_pred.png")
+# plot_pred_scikit("../../results/figures/part_b_pred_scikit.png")
 # plot_mse_r2_grid(
 #         "../../results/figures/part_b_mse_grid.png",
 #         "../../results/figures/part_b_r2_grid.png"

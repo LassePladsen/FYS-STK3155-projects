@@ -41,9 +41,12 @@ X_train, X_test, y_train, y_test  = train_test_split(X, target, test_size=0.2,
 # Set up random number generator
 rng = np.random.default_rng(rng_seed)
 
-# Set up gradient function
-train_cost = cost_logreg(y_train.ravel())    
-cost_grad = grad(train_cost)
+def cost_logreg_w_regularization(target, pred, lmbda):
+    """Cost function for logistic regression/cost entropy for binary classification
+    with added L2 regularization hyperparameter lambda
+    """
+    return cost_logreg(target)(pred) + lmbda * np.linalg.norm(theta)
+
 
 def create_X_1d(x, n):
     """Returns the design matrix X from coordinates x with n polynomial degrees."""
@@ -59,19 +62,22 @@ def create_X_1d(x, n):
     return X
 
 
-def stochastic_gradient_descent_logreg(X, y, eta, n_batches, lmbda=0,
+def stochastic_gradient_descent_logreg(X, y, eta, lmbda, n_batches=1,
                              max_epochs=1000, tol=1e-7):
     """Stochastic minibatch gradient descent algorithm"""
+    # Set up gradient function
+    cost_grad = grad(cost_logreg_w_regularization, 1)
+
     M = int(n/n_batches)  # size of minibatches
     
-    # Start with random theta guess
-    theta = rng.standard_normal((2, 1))
+    # Start with random theta/weight guess
+    theta = rng.standard_normal((X.shape[1], 1))
 
-    for epoch in max_epochs:
+    for epoch in range(max_epochs):
         # Iterate through all minibatches for each epoch iteration
         for i in range(n_batches):
             # Pick a minibatch at random from the data set 
-            random_index = M * rng.integers(m)
+            random_index = M * rng.integers(n_batches)
             Xi = X[random_index:random_index + M]
             yi = y[random_index:random_index + M]
             
