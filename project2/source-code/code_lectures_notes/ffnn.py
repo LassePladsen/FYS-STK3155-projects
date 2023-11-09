@@ -7,9 +7,9 @@ from copy import copy
 from typing import Callable, Iterable
 from sklearn.utils import resample
 
-from cost import cost_ols, cost_logreg, cost_crossentropy
-from activation import identity, sigmoid, softmax, relu, lrelu, derivate
-from scheduler import Scheduler, Constant
+from .cost import cost_ols, cost_logreg, cost_crossentropy
+from .activation import identity, sigmoid, softmax, relu, lrelu, derivate
+from .scheduler import Scheduler, Constant
 
 warnings.simplefilter("error")
 
