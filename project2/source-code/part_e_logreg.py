@@ -43,6 +43,7 @@ X_train, X_test, y_train, y_test  = train_test_split(X, target, test_size=0.2,
 
 test_cost = cost_ols(y_test.ravel())                                                   
 
+# FOR LOGISTIC REGRESSION WE JUST USE THE NN CODE WITH NO HIDDEN LAYERS
 nn = FFNN(
         dimensions=[X_train.shape[1], 1],
         hidden_func=sigmoid,
