@@ -203,6 +203,7 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
         plt.show()
 
 
+print_pred()
 plot_pred("../../results/figures/part_b_pred.png")
 plot_pred_scikit("../../results/figures/part_b_pred_scikit.png")
 # plot_mse_r2_grid(
