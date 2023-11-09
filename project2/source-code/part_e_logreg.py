@@ -35,7 +35,7 @@ lmbd_vals = np.logspace(-6, 0, 7)  # regularization rates
 # Set up design matrix and target vector
 data = load_breast_cancer()
 X = data.data
-target = data.target.reshape(-1,1)
+target = data.target.reshape(-1, 1)
 
 # Split data into training and testing set
 X_train, X_test, y_train, y_test  = train_test_split(X, target, test_size=0.2,

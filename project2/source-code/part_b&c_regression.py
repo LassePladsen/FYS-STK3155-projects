@@ -62,7 +62,9 @@ nn = FFNN(
         seed=rng_seed,
 )
 
-nn.fit(
+
+def train():
+    nn.fit(
         X=X_train,
         t=y_train,
         lam=lmbda,
@@ -70,10 +72,11 @@ nn.fit(
         scheduler=Adam(eta=eta, rho=0.9, rho2=0.999),
         # scheduler=Constant(eta=eta),
         batches=n_batches,
-)
+    )
 
 
 def print_pred():
+    train()
     pred = nn.predict(X_test)
 
     # PRINT DATA AND PREDICTION
@@ -84,6 +87,7 @@ def print_pred():
 
 
 def plot_pred(filename: str = ""):
+    train()
     pred = nn.predict(X_test)
 
     # PLOT DATA AND PREDICTION
