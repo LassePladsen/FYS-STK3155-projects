@@ -3,18 +3,18 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
-from jax import grad  # automatic differentitation
+from autograd import grad
+import autograd.numpy as anp
 
 from part_b_activation import sigmoid
-from part_b_cost import cost_logreg
 
 # Parameters
 n = 100  # no. data points
 noise_std = 1  # standard deviation of noise
 xmax = 5  # max x value
-lmbda = 0.0001  # shrinkage hyperparameter lambda
-eta = 0.001  # learning rate
-n_batches = 3  # no. minibatches for sgd
+lmbda = 1e-5  # shrinkage hyperparameter lambda
+eta = 0.5  # learning rate
+n_batches = 10  # no. minibatches for sgd
 degree = 2  # max polynomial degree for design matrix
 n_epochs = 1000  # max no. epochs/iterations for nn training
 theta_tol = 1e-7  # tolerance for convergence check
@@ -41,11 +41,14 @@ X_train, X_test, y_train, y_test  = train_test_split(X, target, test_size=0.2,
 # Set up random number generator
 rng = np.random.default_rng(rng_seed)
 
-def cost_logreg_w_regularization(target, pred, lmbda):
+def cost_logreg_w_regularization(X, y, theta, lmbda):
     """Cost function for logistic regression/cost entropy for binary classification
     with added L2 regularization hyperparameter lambda
     """
-    return cost_logreg(target)(pred) + lmbda * np.linalg.norm(theta)
+    d = 1e-10
+    z = X @ theta
+    a = sigmoid(z)
+    return - 1/y.shape[0] * anp.sum(y * anp.log(a+d) + (1-y) * anp.log(1-a + d)) + lmbda * anp.linalg.norm(theta+d)
 
 
 def create_X_1d(x, n):
@@ -62,13 +65,15 @@ def create_X_1d(x, n):
     return X
 
 
-def stochastic_gradient_descent_logreg(X, y, eta, lmbda, n_batches=1,
-                             max_epochs=1000, tol=1e-7):
-    """Stochastic minibatch gradient descent algorithm"""
-    # Set up gradient function
-    cost_grad = grad(cost_logreg_w_regularization, 1)
+# Set up the cost functions gradient using autodiff
+cost_grad = grad(cost_logreg_w_regularization, 2)
 
-    M = int(n/n_batches)  # size of minibatches
+def stochastic_gradient_descent_logreg(X, y, eta, lmbda, n_batches=1,
+                             max_epochs=1000, tol=1e-7, prnt=True):
+    """Stochastic minibatch gradient descent algorithm"""
+
+    # Size of minibatches
+    M = int(n/n_batches)  
     
     # Start with random theta/weight guess
     theta = rng.standard_normal((X.shape[1], 1))
@@ -82,7 +87,7 @@ def stochastic_gradient_descent_logreg(X, y, eta, lmbda, n_batches=1,
             yi = y[random_index:random_index + M]
             
             # Calculate logistic regression gradient
-            gradient = cost_grad(Xi, yi, lmbda, theta)
+            gradient = cost_grad(Xi, yi, theta, lmbda)
 
             # Update theta
             theta_prev = theta.copy()
@@ -90,14 +95,18 @@ def stochastic_gradient_descent_logreg(X, y, eta, lmbda, n_batches=1,
 
         # Convergence test
         if all(abs(theta - theta_prev) <= tol):
+            if prnt:
+                print(f"Converged after {epoch} iterations.")
             return theta
-
     return theta
 
 
-test_cost = cost_logreg(y_test.ravel())                                                   
-
-print()
+theta = stochastic_gradient_descent_logreg(X_train, y_train, eta, lmbda,
+                                            n_batches, n_epochs, theta_tol)
+pred = sigmoid(X_test @ theta)    
+print(y_test)                                      
+print(pred.ravel())
+print(accuracy_score(y_test, pred))
 
 # plt.grid(True)
 # plt.legend()
