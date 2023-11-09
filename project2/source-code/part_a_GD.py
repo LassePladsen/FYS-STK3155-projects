@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from autograd import grad
 import seaborn as sns
 
+np.random.seed(2023)
 n = 100
 x = 2 * np.random.rand(n, 1)
 noise = np.random.normal(0, 0.1, size=x.shape)
@@ -296,6 +297,81 @@ def anal_SGDM(beta, method, Type):
     return Beta, error, itera
 
 
+# Value for parameter rho (RMSprop)
+rho = 0.99
+# Value for parameters beta1 and beta2 (ADAM)
+beta1 = 0.9
+beta2 = 0.999
+
+# Seaborn for ADAM, SGD, Analgrad:
+lam_v = [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
+eta_v = [0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+
+
+def scikit_model_1():
+    sns.set()
+    test_accuracy = np.zeros((len(eta_v), len(lam_v)))
+    for i in range(len(eta_v)):
+        for j in range(len(lam_v)):
+            gamma_GD = eta_v[i]
+            lamb = lam_v[j]
+            error = anal_SGD(beta_anal, 1, 2)[1]
+            test_accuracy[i][j] = error[-1]
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    sns.heatmap(test_accuracy,
+                annot=True,
+                ax=ax,
+                cmap="viridis",
+                fmt=".2f",
+                xticklabels=[f"{lmbd}" for lmbd in lam_v],
+                yticklabels=[f"{eta}" for eta in eta_v])
+    ax.set_title(f"MSE: SGD(ADAM) with Anal.grad [n_epocs = {n_epochs}, n_minibatches = {m}]")
+    ax.set_ylabel("$\eta$")
+    ax.set_xlabel("$\lambda$")
+    plt.show()
+
+
+# scikit_model_1()
+# Use the optimal:
+gamma_GD = 0.3     # eta
+lamb = 0.001        # lambda
+# Thereafter do the same for minibatches and epochs:
+epoc = [40, 45, 50, 55, 60]
+minibat = [int(n/10), int(n/5), int(n/4), int(n/2)]
+
+
+def scikit_model_2():
+    sns.set()
+    test_accuracy = np.zeros((len(epoc), len(minibat)))
+    for i in range(len(epoc)):
+        for j in range(len(minibat)):
+            n_epochs = epoc[i]
+            m = minibat[j]
+            error = anal_SGD(beta_anal, 1, 2)[1]
+            test_accuracy[i][j] = error[-1]
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    sns.heatmap(test_accuracy,
+                annot=True,
+                ax=ax,
+                cmap="viridis",
+                fmt=".2f",
+                xticklabels=[f"{mini}" for mini in minibat],
+                yticklabels=[f"{ep}" for ep in epoc])
+    ax.set_title(fr"MSE: SGD(ADAM) with Anal.grad [$\eta$={gamma_GD}, $\lambda$={lamb}]")
+    ax.set_ylabel("Epochs")
+    ax.set_xlabel("Minibatches")
+    plt.show()
+
+
+# scikit_model_2()
+# Use the optimal:
+n_epochs = 50
+m = 20  # number of minibatches
+# exit()
+
+
 # Plain (Normal):
 error_OLS_GD_plain1, iterations_OLS_GD_plain1 = anal_GD(beta_anal, 0, 3)[1:3]
 error_OLS_GDM_plain1, iterations_OLS_GDM_plain1 = anal_GDM(beta_anal, 0, 3)[1:3]
@@ -355,9 +431,6 @@ plt.show()"""
 
 
 # RMSprop:
-# Value for parameter rho
-rho = 0.99
-
 error_OLS_GD_RMSprop1, iterations_OLS_GD_RMSprop1 = anal_GD(beta_anal, 0, 1)[1:3]
 error_OLS_GDM_RMSprop1, iterations_OLS_GDM_RMSprop1 = anal_GDM(beta_anal, 0, 1)[1:3]
 
@@ -387,10 +460,6 @@ plt.show()"""
 
 
 # ADAM:
-# Value for parameters beta1 and beta2
-beta1 = 0.9
-beta2 = 0.999
-
 error_OLS_GD_ADAM1, iterations_OLS_GD_ADAM1 = anal_GD(beta_anal, 0, 2)[1:3]
 error_OLS_GDM_ADAM1, iterations_OLS_GDM_ADAM1 = anal_GDM(beta_anal, 0, 2)[1:3]
 
@@ -421,8 +490,8 @@ plt.show()"""
 
 # EXTRA:
 # Here we plot the relationship between the MSE of the different methods using optimal parameters
-plt.figure(figsize=(10, 9))
-plt.suptitle(fr"[Anal.grad.OLS]: Iterations = {N}, GD learning rate = {gamma_GD}, mini-batches = {m}, epochs = {n_epochs}")
+plt.figure(figsize=(10, 8))
+plt.suptitle(fr"[Anal.grad.OLS]: Iterations = {N}, $\eta$ = {gamma_GD}, mini-batches = {m}, epochs = {n_epochs}")
 plt.subplot(2, 2, 1)
 plt.title("GD")
 plt.plot(iterations_OLS_GD_plain1, error_OLS_GD_plain1, label="Normal")
@@ -457,8 +526,8 @@ plt.legend()
 plt.xlabel("Iterations")
 # plt.show()
 
-plt.figure(figsize=(10, 9))
-plt.suptitle(fr"[Anal.grad.Ridge]: Iterations = {N}, $\lambda$ = {lamb}, GD Learning rate = {gamma_GD}, mini-batches = {m}, epochs = {n_epochs}")
+plt.figure(figsize=(10, 8))
+plt.suptitle(fr"[Anal.grad.Ridge]: Iterations = {N}, $\lambda$ = {lamb}, $\eta$ = {gamma_GD}, mini-batches = {m}, epochs = {n_epochs}")
 plt.subplot(2, 2, 1)
 plt.title("GD")
 plt.plot(iterations_Ridge_GD_plain1, error_Ridge_GD_plain1, label="Normal")
@@ -881,9 +950,9 @@ plt.show()"""
 
 
 # EXTRA:
-# Here we plot the relationship between the MSE of the different methods using optimal parameters
-plt.figure(figsize=(10, 9))
-plt.suptitle(fr"[AutoGrad.OLS]: Iterations = {N}, GD learning rate = {gamma_GD}, mini-batches = {m}, epochs = {n_epochs}")
+# Plot relationship between MSE of the different methods using optimal parameters found above:
+plt.figure(figsize=(10, 8))
+plt.suptitle(fr"[AutoGrad.OLS]: Iterations = {N}, $\eta$ = {gamma_GD}, mini-batches = {m}, epochs = {n_epochs}")
 plt.subplot(2, 2, 1)
 plt.title("GD")
 plt.plot(iterations_OLS_GD_plain, error_OLS_GD_plain, label="Normal")
@@ -918,8 +987,8 @@ plt.legend()
 plt.xlabel("Iterations")
 # plt.show()
 
-plt.figure(figsize=(10, 9))
-plt.suptitle(fr"[AutoGrad.Ridge]: Iterations = {N}, $\lambda$ = {lamb}, GD Learning rate = {gamma_GD}, mini-batches = {m}, epochs = {n_epochs}")
+plt.figure(figsize=(10, 8))
+plt.suptitle(fr"[AutoGrad.Ridge]: Iterations = {N}, $\lambda$ = {lamb}, $\eta$ = {gamma_GD}, mini-batches = {m}, epochs = {n_epochs}")
 plt.subplot(2, 2, 1)
 plt.title("GD")
 plt.plot(iterations_Ridge_GD_plain, error_Ridge_GD_plain, label="Normal")
