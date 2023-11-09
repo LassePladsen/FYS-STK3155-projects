@@ -15,11 +15,11 @@ from sklearn.metrics import accuracy_score
 n = 100  # no. data points
 noise_std = 1  # standard deviation of noise
 xmax = 5  # max x value
-lmbda = 0.0001  # shrinkage  hyperparameter lambda
+lmbda = 1e-3  # shrinkage  hyperparameter lambda
 eta = 0.001  # learning rate
-n_batches = 3  # no. minibatches for sgd
+n_batches = 10  # no. minibatches for sgd
 degree = 2  # max polynomial degree for design matrix
-n_epochs = 1000  # no. epochs/iterations for nn training
+n_epochs = 5000  # no. epochs/iterations for nn training
 rng_seed = 2023  # seed for generating psuedo-random values, helps withbugging purposes
 
 # Grid plot parameters
@@ -29,7 +29,7 @@ lmbd_vals = np.logspace(-5, 0, 6)  # regularization rates
 # Set up design matrix and target vector
 data = load_breast_cancer()
 X = data.data
-target = data.target
+target = data.target.reshape(-1,1)
 
 # Split data into training and testing set
 X_train, X_test, y_train, y_test  = train_test_split(X, target, test_size=0.2,
@@ -44,15 +44,14 @@ nn = FFNN(
         cost_func=cost_logreg,
         seed=rng_seed,
 )
-
 nn.fit(
         X=X_train,
         t=y_train,
         lam=lmbda,
         epochs=n_epochs,
-        # scheduler=Adam(eta=eta, rho=0.9, rho2=0.999),
-        scheduler=Constant(eta=eta),
-        batches=1,
+        scheduler=Adam(eta=eta, rho=0.9, rho2=0.999),
+        # scheduler=Constant(eta=eta),
+        batches=n_batches,
 )
 
 
@@ -61,7 +60,7 @@ def print_pred():
 
     # PRINT DATA AND PREDICTION
     print("\nData:")
-    print(y.ravel())
+    print(y_test.ravel())
     print("\nPredictions:")
     print(pred.ravel())
 
@@ -121,10 +120,10 @@ def plot_pred_scikit(filename: str = ""):
         plt.show()
 
 
-def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
-    # PLOT MSE AND R2 AS FUNC OF LAMBDA AND ETA
+def plot_accuracy_grid(filename_mse: str = "", filename_r2: str = ""):
+    # PLOT ACCURACY SCORE AS FUNC OF LAMBDA AND ETA
 
-    # Iterate through parameters -> train -> save mse and r2 to heatmap
+    # Iterate through parameters -> train -> save accuracy to heatmap
     mse_scores = np.zeros((eta_vals.size, lmbd_vals.size))
     r2_scores = np.zeros((eta_vals.size, lmbd_vals.size))
     for i, eta in enumerate(eta_vals):
@@ -135,8 +134,7 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
                     t=y_train,
                     lam=lmbd,
                     epochs=n_epochs,
-                    scheduler=Adam(eta=eta, rho=0.9, rho2=0.999),
-                    # scheduler=Constant(eta=eta),
+                    scheduler=Constant(eta=eta),
                     batches=n_batches,
             )
             pred = nn.predict(X_test)
@@ -186,7 +184,11 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
         plt.show()
 
 
-print_pred()
+# print_pred()
+pred = nn.predict(X_test)
+print(y_test.ravel())
+print(pred.ravel())
+print(accuracy_score(y_test, pred))
 # plot_pred("../../results/figures/part_b_pred.png")
 # plot_pred_scikit("../../results/figures/part_b_pred_scikit.png")
 # plot_mse_r2_grid(
