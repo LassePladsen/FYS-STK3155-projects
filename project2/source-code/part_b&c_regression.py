@@ -14,9 +14,9 @@ from sklearn.metrics import r2_score, mean_squared_error
 n = 100  # no. data points
 noise_std = 1  # standard deviation of noise
 xmax = 5  # max x value
-lmbda = 0.0001  # shrinkage  hyperparameter lambda
-eta = 0.001  # learning rate
-n_batches = 3  # no. minibatches for sgd
+lmbda = 0.1  # shrinkage  hyperparameter lambda
+eta = 0.01  # learning rate
+n_batches = 15  # no. minibatches for sgd
 degree = 2  # max polynomial degree for design matrix
 n_epochs = 1000  # no. epochs/iterations for nn training
 rng_seed = 2023  # seed for generating psuedo-random values, helps withbugging purposes
@@ -209,9 +209,9 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
 
 
 # print_pred()
-# plot_pred("../results/figures/part_b_pred.png")
-# plot_pred_scikit("../results/figures/part_b_pred_scikit.png")
-plot_mse_r2_grid(
-        f"../results/figures/part_b_mse_grid_batches{n_batches}.png",
-        f"../results/figures/part_b_r2_grid_batches{n_batches}.png",
-)
+plot_pred("../results/figures/part_b_pred.png")
+plot_pred_scikit("../results/figures/part_b_pred_scikit.png")
+# plot_mse_r2_grid(
+#         f"../results/figures/part_b_mse_grid_batches{n_batches}.png",
+#         f"../results/figures/part_b_r2_grid_batches{n_batches}.png",
+# )
