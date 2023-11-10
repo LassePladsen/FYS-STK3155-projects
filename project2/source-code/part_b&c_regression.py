@@ -25,6 +25,8 @@ rng_seed = 2023  # seed for generating psuedo-random values, helps withbugging p
 eta_vals = np.logspace(-5, -1, 5)  # learning rates
 lmbd_vals = np.logspace(-5, 0, 6)  # regularization rates
 
+figsize = 8, 5
+
 # Create data set
 rng = np.random.default_rng(rng_seed)
 x = rng.uniform(-xmax, xmax, size=(n, 1)) 
@@ -42,7 +44,6 @@ def create_X_1d(x, n):
 
     for p in range(1, n + 1):
         X[:, p] = x**p
-
     return X
 
 
@@ -165,11 +166,11 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
             r2_scores[i, j] = r2_score(y_test, pred)
 
     # MSE heatmap
-    plt.figure()
+    plt.figure(figsize=figsize)
     sns.heatmap(
             mse_scores,
             annot=True,
-            fmt=".2f",
+            fmt=".3g",
             xticklabels=[f"{lmbd:g}" for lmbd in lmbd_vals],
             yticklabels=[f"{eta:g}" for eta in eta_vals],
             cbar_kws={"label": "MSE"},
@@ -186,7 +187,7 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
         plt.show()
 
     # R2 heatmap
-    plt.figure()
+    plt.figure(figsize=figsize)
     sns.heatmap(
             r2_scores,
             annot=True,
@@ -207,10 +208,10 @@ def plot_mse_r2_grid(filename_mse: str = "", filename_r2: str = ""):
         plt.show()
 
 
-print_pred()
+# print_pred()
 # plot_pred("../results/figures/part_b_pred.png")
 # plot_pred_scikit("../results/figures/part_b_pred_scikit.png")
-# plot_mse_r2_grid(
-#         "../results/figures/part_b_mse_grid.png",
-#         "../results/figures/part_b_r2_grid.png"
-# )
+plot_mse_r2_grid(
+        f"../results/figures/part_b_mse_grid_batches{n_batches}.png",
+        f"../results/figures/part_b_r2_grid_batches{n_batches}.png",
+)
