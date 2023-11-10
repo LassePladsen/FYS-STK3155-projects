@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
-from sklearn.neural_network import MLPRegressor  # neural network from sckikit-learn for comparision
 from sklearn.metrics import accuracy_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.exceptions import ConvergenceWarning
