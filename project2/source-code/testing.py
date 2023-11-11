@@ -1,4 +1,4 @@
-from part_b_ffnn import FFNN
+'''from part_b_ffnn import FFNN
 from part_b_activation import *
 from part_b_cost import *
 
@@ -213,3 +213,17 @@ print_pred()
 #         "../results/figures/part_b_mse_grid.png",
 #         "../results/figures/part_b_r2_grid.png"
 # )
+'''
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.linspace(-5, 5, 300)
+y = y = 2 + 3 * x + 4 * x**2
+
+plt.plot(x, y)
+plt.xlabel("x")
+plt.ylabel("y")
+plt.grid()
+plt.title("Simulated data set")
+plt.savefig("../results/figures/polynomial_data_plot.png")
