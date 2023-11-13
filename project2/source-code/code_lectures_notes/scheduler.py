@@ -23,7 +23,7 @@ class Constant(Scheduler):
 
     def update_change(self, gradient):
         return self.eta * gradient
-    
+
     def reset(self):
         pass
 
