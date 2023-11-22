@@ -29,4 +29,4 @@ def get_balanced_exoplanet_data(
     # SMOTE AND SPLIT
     smote = SMOTE()
     x_train_smote, y_train_smote = smote.fit_resample(x_train, y_train)
-    return train_test_split(x_train_smote, y_train_smote)
+    return train_test_split(x_train_smote, y_train_smote, test_size=0.2)
