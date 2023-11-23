@@ -29,6 +29,7 @@ def get_balanced_exoplanet_data(
 
     # SMOTE AND SPLIT
     smote = SMOTE()
+
     x_train_smote, y_train_smote = smote.fit_resample(x_train, y_train)
     return train_test_split(x_train_smote, y_train_smote, test_size=0.2)
 
@@ -39,7 +40,9 @@ def get_scaled_balanced_exoplanet_data(
     """Returns exoplanet training data from the data folder oversampled using the SMOTE algorithm from imblearn, then split into new train and test split using scikit-learns' train_test_split, and finally scaled using scikit-learn's StandardScaler"""
     x_train, x_test, y_train, y_test = get_balanced_exoplanet_data(trainfile, testfile)
 
+    # Scale
     scaler = StandardScaler()
     x_train_scaled = scaler.fit_transform(x_train)
     x_test_scaled = scaler.transform(x_test)
+    
     return x_train_scaled, x_test_scaled, y_train, y_test
