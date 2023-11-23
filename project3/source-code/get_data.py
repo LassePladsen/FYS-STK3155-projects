@@ -44,5 +44,5 @@ def get_scaled_balanced_exoplanet_data(
     scaler = StandardScaler()
     x_train_scaled = scaler.fit_transform(x_train)
     x_test_scaled = scaler.transform(x_test)
-    
+
     return x_train_scaled, x_test_scaled, y_train, y_test
