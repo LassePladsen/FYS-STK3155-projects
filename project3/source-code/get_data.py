@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -6,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 
 def get_raw_exoplanet_data(
     trainfile: str = "../data/exoTrain.csv", testfile: str = "../data/exoTest.csv"
-) -> (pd.DataFrame, pd.DataFrame, pd.Series, pd.Series):
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """Returns the exoplanet training and testing data from the data folder"""
 
     data_train = pd.read_csv(trainfile)
@@ -23,10 +24,10 @@ def get_raw_exoplanet_data(
 
 def get_balanced_exoplanet_data(
     trainfile: str = "../data/exoTrain.csv", testfile: str = "../data/exoTest.csv"
-) -> (pd.DataFrame, pd.DataFrame, pd.Series, pd.Series):
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """Returns exoplanet training from the data folder oversampled using the SMOTE algorithm from imblearn, then split into new train and test split using scikit-learns' train_test_split"""
     test_size = 0.2
-    
+
     x_train, x_test, y_train, y_test = get_raw_exoplanet_data(trainfile, testfile)
 
     # SMOTE AND SPLIT
@@ -38,7 +39,7 @@ def get_balanced_exoplanet_data(
 
 def get_scaled_balanced_exoplanet_data(
     trainfile: str = "../data/exoTrain.csv", testfile: str = "../data/exoTest.csv"
-) -> (pd.DataFrame, pd.DataFrame, pd.Series, pd.Series):
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Returns exoplanet training data from the data folder oversampled using the SMOTE algorithm from imblearn, then split into new train and test split using scikit-learns' train_test_split, and finally scaled using scikit-learn's StandardScaler"""
     x_train, x_test, y_train, y_test = get_balanced_exoplanet_data(trainfile, testfile)
 
