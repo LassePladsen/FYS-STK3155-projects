@@ -6,5 +6,5 @@ We aim to use and compare three methods of classification for the Kaggle dataset
 We focus on; 1) Logistic regression, 2) Classification neural network, 3) Classification decision tree, and 4) Gradient boosted tree.
 
 ## Python requirements
-Python version $\ge$ 3.10
+Python version $\ge$ 3.8
 External libraries: see requirements.txt
